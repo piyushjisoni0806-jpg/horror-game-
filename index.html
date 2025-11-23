@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Escape the Dark House</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: Arial;
+      color: white;
+    }
+
+    #player, #enemy, #key, #exit {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+    }
+
+    #player { background: white; }
+    #enemy { background: red; }
+    #key { background: yellow; }
+    #exit { background: green; }
+
+    #message {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="player"></div>
+<div id="enemy"></div>
+<div id="key"></div>
+<div id="exit"></div>
+<div id="message">Find the key!</div>
+
+<script>
+  let player = document.getElementById("player");
+  let enemy = document.getElementById("enemy");
+  let key = document.getElementById("key");
+  let exitDoor = document.getElementById("exit");
+  let message = document.getElementById("message");
+
+  let hasKey = false;
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+
+  // Random positions
+  function randomPosition(element) {
+    element.style.left = Math.random() * (width - 40) + "px";
+    element.style.top = Math.random() * (height - 40) + "px";
+  }
+
+  randomPosition(player);
+  randomPosition(enemy);
+  randomPosition(key);
+  randomPosition(exitDoor);
+
+  // Move player
+  let speed = 10;
+  document.addEventListener("keydown", (e) => {
+    let x = parseInt(player.style.left);
+    let y = parseInt(player.style.top);
+
+    if (e.key === "ArrowUp") y -= speed;
+    if (e.key === "ArrowDown") y += speed;
+    if (e.key === "ArrowLeft") x -= speed;
+    if (e.key === "ArrowRight") x += speed;
+
+    player.style.left = x + "px";
+    player.style.top = y + "px";
+
+    checkCollision();
+  });
+
+  // Enemy follows player
+  function moveEnemy() {
+    let px = parseInt(player.style.left);
+    let py = parseInt(player.style.top);
+    let ex = parseInt(enemy.style.left);
+    let ey = parseInt(enemy.style.top);
+
+    if (ex < px) ex++;
+    if (ex > px) ex--;
+    if (ey < py) ey++;
+    if (ey > py) ey--;
+
+    enemy.style.left = ex + "px";
+    enemy.style.top = ey + "px";
+
+    checkCollision();
+  }
+  setInterval(moveEnemy, 10);
+
+  // Check collisions
+  function checkCollision() {
+    let px = player.getBoundingClientRect();
+    let kx = key.getBoundingClientRect();
+    let ex = exitDoor.getBoundingClientRect();
+    let em = enemy.getBoundingClientRect();
+
+    // Pick up key
+    if (!hasKey && px.left < kx.right && px.right > kx.left && px.top < kx.bottom && px.bottom > kx.top) {
+      hasKey = true;
+      key.style.display = "none";
+      message.innerHTML = "You got the key! Find the exit!";
+    }
+
+    // Win
+    if (hasKey && px.left < ex.right && px.right > ex.left && px.top < ex.bottom && px.bottom > ex.top) {
+      message.innerHTML = "You escaped! 🎉";
+      enemy.style.display = "none";
+    }
+
+    // Lose
+    if (px.left < em.right && px.right > em.left && px.top < em.bottom && px.bottom > em.top) {
+      message.innerHTML = "The shadow caught you... 💀";
+      enemy.style.background = "darkred";
+    }
+  }
+</script>
+
+</body>
+</html>
